@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # django included
     'django_mysql',
     'rest_framework',
+    'rest_framework.authtoken',
 
     # my apps
     'restAPI'
@@ -76,6 +77,15 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
 
 WSGI_APPLICATION = 'restAPIproject.wsgi.application'
 

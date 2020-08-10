@@ -3,11 +3,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
-
+from django.db import IntegrityError
 
 from .models import Book
 from .serializers import BookSerializer
 from .utils import handle_book_data
+
+
+def provide_data(request):
+    return render(request, 'restAPI/postView.html')
 
 class BooksView(APIView):
 
@@ -24,7 +28,7 @@ class BooksView(APIView):
 
         authors = request.query_params.getlist('author')            # extract all authors
         dates = request.query_params.getlist('published_date')      # extract all dates
-        sort = request.query_params.get('author', 'published_date') # extract sort type
+        sort = request.query_params.get('sort', 'published_date') # extract sort type
 
         if authors:
             res_authors = Book.objects.none()
@@ -47,7 +51,7 @@ class BooksView(APIView):
             all_books = res_dates
 
         if sort == '-published_date':
-            all_books.order_by('-year')
+            all_books = all_books.order_by('-year')
 
         response = BookSerializer(all_books, many=True).data
         return Response({'response':response}, status=status.HTTP_200_OK)
@@ -59,7 +63,7 @@ class BooksView(APIView):
                     .replace(': true', ': True')
                     .replace(': false', ': False')
                     )
-        
+
         try:
             # if data contains list of books
             items = data['items']
@@ -68,18 +72,21 @@ class BooksView(APIView):
             if isinstance(data, list):
                 items = data
             else:
-                items = list(data)
+                items = []
+                items.append(data)
 
         for i in items:
 
             book_data = handle_book_data(i)
-            
+      
             book = Book(**book_data)
 
             try:
                 book.save()
+            except IntegrityError:
+                Book.objects.get(title=book.title).delete()
+                book.save()
             except Exception as e:
-                print(e)
                 response = 'Wrong data provided!'
                 return Response(response, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 

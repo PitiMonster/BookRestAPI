@@ -33,3 +33,12 @@ def handle_book_data(item : dict):
     book_data['year'] = int(book_data['published_date'].split('-')[0])
 
     return book_data
+
+def create_query_url(url: str, params: list):
+    ''' return url with query parameters given in params '''
+    url += '?'
+
+    for i in params:
+        url += f'{i[0]}={i[1]}&'
+
+    return url
